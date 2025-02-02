@@ -1,0 +1,16 @@
+.customButton {
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    color: white;
+  }
+  
+  .customButton:hover {
+    opacity: 0.9;
+  }
