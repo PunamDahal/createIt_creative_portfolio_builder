@@ -1,0 +1,25 @@
+.loginContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80vh;
+    font-family: Arial, sans-serif;
+  }
+  
+  .loginBox {
+    padding: 40px;
+    border-radius: 8px;
+    text-align: center;
+    width: 400px;
+  }
+  
+  h1 {
+    font-size: 32px;
+    font-weight: bold;
+  }
+  
+  p {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  
