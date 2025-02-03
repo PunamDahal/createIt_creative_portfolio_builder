@@ -1,26 +1,28 @@
-from fastapi import FastAPI, Depends, HTTPException
-from starlette.requests import Request
-from starlette.responses import RedirectResponse
-from authlib.integrations.starlette_client import OAuth
 import os
-import dotenv
 import uvicorn
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.responses import RedirectResponse
+from authlib.integrations.starlette_client import OAuth
+from starlette.middleware.sessions import SessionMiddleware
+from dotenv import load_dotenv
 
-dotenv.load_dotenv()
+# Load environment variables
+load_dotenv()
 
+# Initialize FastAPI app
 app = FastAPI()
 
+# Add session middleware for authentication handling
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "your_default_secret_key"))
 
-# Initialize OAuth
+# OAuth configuration
 oauth = OAuth()
-
-# Register OAuth Providers
 oauth.register(
     name="google",
     client_id=os.getenv("GOOGLE_CLIENT_ID"),
     client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
     authorize_url="https://accounts.google.com/o/oauth2/auth",
+    authorize_params={"scope": "openid email profile"},
     access_token_url="https://oauth2.googleapis.com/token",
     client_kwargs={"scope": "openid email profile"},
 )
@@ -34,68 +36,61 @@ oauth.register(
     client_kwargs={"scope": "user:email"},
 )
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5174"],  # Allow frontend to make requests
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Home route
+@app.get("/")
+def home():
+    return {"message": "Welcome to OAuth Authentication with FastAPI"}
 
-# Store user session data (simulated session storage)
-user_sessions = {}
+# Google login
+@app.get("/auth/login/google")
+async def login_google(request: Request):
+    redirect_uri = request.url_for("auth_google_callback")
+    return await oauth.google.authorize_redirect(request, redirect_uri)
 
-
-@app.get("/auth/login/{provider}")
-async def login(request: Request, provider: str):
-    if provider not in oauth.clients:
-        raise HTTPException(status_code=400, detail="Unsupported provider")
-    redirect_uri = os.getenv("REDIRECT_URI")  # Ensure this is set in your .env file
-    return await oauth.create_client(provider).authorize_redirect(request, redirect_uri)
-
-@app.get("/auth/callback")
-async def auth_callback(request: Request):
-    provider = request.query_params.get("provider")
-    if provider not in oauth.clients:
-        raise HTTPException(status_code=400, detail="Invalid provider")
-
-    client = oauth.create_client(provider)
-    token = await client.authorize_access_token(request)
-
-    if provider == "google":
-        user_info = await client.parse_id_token(request, token)
-    elif provider == "github":
-        user_info = await client.get("https://api.github.com/user", token=token)
-        user_info = user_info.json()
+# Google callback
+@app.get("/auth/google/callback")
+async def auth_google_callback(request: Request):
+    token = await oauth.google.authorize_access_token(request)
+    user_info = token.get("userinfo")
 
     if not user_info:
-        raise HTTPException(status_code=400, detail="Failed to retrieve user info")
+        raise HTTPException(status_code=400, detail="Google authentication failed")
 
-    # Store user session (in-memory for this example)
-    session_token = token["access_token"]
-    user_sessions[session_token] = {
-        "id": user_info.get("sub") or user_info.get("id"),
-        "name": user_info.get("name") or user_info.get("login"),
-        "email": user_info.get("email"),
-        "picture": user_info.get("picture") or user_info.get("avatar_url"),
-        "provider": provider,
-    }
+    request.session["user"] = user_info
+    return RedirectResponse(url="/profile")
 
-    # Redirect to frontend with session token (to be used for further requests)
-    return RedirectResponse(url=f"http://localhost:5174/dashboard/user?token={session_token}")
+# GitHub login
+@app.get("/auth/login/github")
+async def login_github(request: Request):
+    redirect_uri = request.url_for("auth_github_callback")
+    return await oauth.github.authorize_redirect(request, redirect_uri)
 
+# GitHub callback
+@app.get("/auth/github/callback")
+async def auth_github_callback(request: Request):
+    token = await oauth.github.authorize_access_token(request)
+    user_info = await oauth.github.parse_id_token(request, token)
 
-@app.get("/test")
-def test():
-    return {"message": "FastAPI is working!"}
+    if not user_info:
+        raise HTTPException(status_code=400, detail="GitHub authentication failed")
 
-@app.get("/auth/user")
-async def get_authenticated_user(token: str):
-    user = user_sessions.get(token)
+    request.session["user"] = user_info
+    return RedirectResponse(url="/dashboard/user")
+
+# User profile
+@app.get("/profile")
+async def profile(request: Request):
+    user = request.session.get("user")
     if not user:
-        raise HTTPException(status_code=401, detail="User not authenticated")
+        raise HTTPException(status_code=401, detail="Not authenticated")
     return user
 
+# Logout
+@app.get("/logout")
+async def logout(request: Request):
+    request.session.pop("user", None)
+    return RedirectResponse(url="/")
+
+# Run the app
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
