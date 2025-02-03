@@ -16,7 +16,7 @@ const Header = () => {
 
       {/* Right - Create with us Link */}
       <Link to="/login" className={styles.createLink}>
-        Create with us
+        <span className={styles.icon}>.</span> create with us
       </Link>
     </header>
   );

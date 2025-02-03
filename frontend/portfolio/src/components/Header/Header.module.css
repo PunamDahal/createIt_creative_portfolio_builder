@@ -22,7 +22,8 @@
     overflow: hidden;
     white-space: nowrap;
     width: 30%;
-    height: 50px;
+    height: 10px;
+    padding: 20px;
     position: relative;
     outline: 1px solid rebeccapurple;
 }
@@ -31,7 +32,8 @@
 .scrollingText {
     display: inline-block;
     font-size: 1rem;
-    color: rebeccapurple;
+    position: absolute;
+    top:0px;
     animation: scrollText 50s linear infinite;
 }
 
@@ -47,12 +49,22 @@
 
 /* Create with us link */
 .createLink {
-    font-size: 1rem;
+    font-size: 1.2rem;
     color: var(--primary-color);
     text-decoration: none;
     font-weight: bold;
+    box-sizing: border-box;
 }
 
-.createLink:hover {
-    color: var(--link-hover-color);
+.createLink:hover,.scrollingText:hover{
+    color: rebeccapurple;
+}
+
+.icon{
+    font-size: 3rem;
+    color: rebeccapurple;
+}
+
+.icon:hover{
+    color: black;
 }
