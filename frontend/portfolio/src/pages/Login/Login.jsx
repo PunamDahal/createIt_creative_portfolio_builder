@@ -6,7 +6,7 @@ import Footer from "../../components/Footer/Footer";
 
 const Login = () => {
   const handleLogin = (provider) => {
-    window.location.href = `http://localhost:8000/login/${provider}`;
+    window.location.href = `http://localhost:8000/auth/login/${provider}`;
   };
 
   return (
