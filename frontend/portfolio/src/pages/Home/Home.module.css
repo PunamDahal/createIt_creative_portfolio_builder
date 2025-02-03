@@ -1,0 +1,49 @@
+.intro {
+    text-align: center;
+    margin-top: 100px;
+    padding: 20px;
+}
+
+.intro h2 {
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+.intro p {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    color: #ccc; 
+}
+
+/* Content Section */
+.content {
+    height:80vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.content .text {
+    width: 20%;
+    margin-right: 50px;
+}
+
+.content .text h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.content .text p {
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+}
+
+.content .image {
+    flex: 1;
+}
+
+.content .image img {
+    max-width: 100%;
+    border-radius: 10px;
+}

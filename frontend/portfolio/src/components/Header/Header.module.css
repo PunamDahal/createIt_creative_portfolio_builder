@@ -1,0 +1,70 @@
+/* Header container */
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: var(--background-color);
+    border-bottom: 1px solid var(--secondary-color);
+}
+
+/* Logo */
+.logo {
+    text-decoration: none;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Scrolling text container */
+.scrollingTextContainer {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 30%;
+    height: 10px;
+    padding: 20px;
+    position: relative;
+    outline: 1px solid rebeccapurple;
+}
+
+/* Scrolling text animation */
+.scrollingText {
+    display: inline-block;
+    font-size: 1rem;
+    position: absolute;
+    top:0px;
+    animation: scrollText 50s linear infinite;
+}
+
+/* Keyframes for scrolling */
+@keyframes scrollText {
+    0% {
+        transform: translateX(-50%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+/* Create with us link */
+.createLink {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+
+.createLink:hover,.scrollingText:hover{
+    color: rebeccapurple;
+}
+
+.icon{
+    font-size: 3rem;
+    color: rebeccapurple;
+}
+
+.icon:hover{
+    color: black;
+}
