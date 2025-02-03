@@ -11,15 +11,6 @@ dotenv.load_dotenv()
 
 app = FastAPI()
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5174"],  # Allow frontend to make requests
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 
 # Initialize OAuth
 oauth = OAuth()
