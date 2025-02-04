@@ -13,12 +13,17 @@ load_dotenv()
 app = FastAPI()
 
 # Add session middleware for authentication handling
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "your_default_secret_key"))
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SECRET_KEY", "your_default_secret_key"),
+    max_age=3600,  # 1 hour for session expiry, adjust as needed
+    path="/",  # Cookie should be valid across all paths
+)
 
 # OAuth configuration
 oauth = OAuth()
 
-# Google OAuth
+# Google OAuth configuration
 oauth.register(
     name="google",
     client_id=os.getenv("GOOGLE_CLIENT_ID"),
@@ -26,9 +31,10 @@ oauth.register(
     authorize_url="https://accounts.google.com/o/oauth2/auth",
     access_token_url="https://oauth2.googleapis.com/token",
     client_kwargs={"scope": "openid email profile"},
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration", 
 )
 
-# GitHub OAuth
+# GitHub OAuth configuration
 oauth.register(
     name="github",
     client_id=os.getenv("GITHUB_CLIENT_ID"),
@@ -43,15 +49,15 @@ oauth.register(
 def home():
     return {"message": "Welcome to OAuth Authentication with FastAPI"}
 
-# Google login
+# Google login route
 @app.get("/auth/login/google")
 async def login_google(request: Request):
-    redirect_uri = request.url_for("auth_google_callback")  # Generates correct callback URL
+    redirect_uri = request.url_for("auth_google_callback")  # Generates the correct callback URL
     print(f"Google Redirect URI: {redirect_uri}")  # Debugging
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
-# Google callback
-@app.get("/auth/google/callback")
+# Google callback route
+@app.get("/auth/callback")
 async def auth_google_callback(request: Request):
     try:
         token = await oauth.google.authorize_access_token(request)
@@ -60,20 +66,26 @@ async def auth_google_callback(request: Request):
         if not user_info:
             raise HTTPException(status_code=400, detail="Google authentication failed")
 
+        # Store user info in session
         request.session["user"] = user_info
-        return RedirectResponse(url="/profile")
+
+        # Debugging: Check the session data
+        print(f"Session Data: {request.session}")
+
+        # Redirect to the user dashboard after successful login
+        return RedirectResponse(url="http://localhost:5173/dashboard/user")  # Redirect to the user dashboard
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=400)
 
-# GitHub login
+# GitHub login route
 @app.get("/auth/login/github")
 async def login_github(request: Request):
     redirect_uri = request.url_for("auth_github_callback")
     print(f"GitHub Redirect URI: {redirect_uri}")  # Debugging
     return await oauth.github.authorize_redirect(request, redirect_uri)
 
-# GitHub callback
-@app.get("/auth/github/callback")
+# GitHub callback route
+@app.get("/auth/callback")
 async def auth_github_callback(request: Request):
     try:
         token = await oauth.github.authorize_access_token(request)
@@ -82,24 +94,29 @@ async def auth_github_callback(request: Request):
         if not user_info:
             raise HTTPException(status_code=400, detail="GitHub authentication failed")
 
+        # Store user info in session
         request.session["user"] = user_info
-        return RedirectResponse(url="/profile")
+
+        # Debugging: Check the session data
+        print(f"Session Data: {request.session}")
+
+        # Redirect to the user dashboard after successful login
+        return RedirectResponse(url="http://localhost:5173/dashboard/user")  # Redirect to the user dashboard
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=400)
 
-# User profile
-@app.get("/profile")
-async def profile(request: Request):
-    user = request.session.get("user")
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    return user
+# Dashboard route (User dashboard)
+@app.get("http://localhost:5173/dashboard/user")
+async def user_dashboard(request: Request):
+    user_info = request.session.get("user")
 
-# Logout
+
+# Logout route
 @app.get("/logout")
 async def logout(request: Request):
+    # Clear the session
     request.session.pop("user", None)
-    return RedirectResponse(url="/")
+    return RedirectResponse(url="http://localhost:5173/")  # Redirect to home page after logout
 
 # Run the app
 if __name__ == "__main__":
