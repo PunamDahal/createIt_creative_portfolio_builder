@@ -4,3 +4,9 @@ CreateIt is a creative portfolio builder that allows you to easily create and sh
 
 
 [screen-capture.webm](https://github.com/user-attachments/assets/da505127-706f-4b05-b16c-298c92b84d74)
+
+
+
+
+
+#UNDER CONSTRUCTION : JUST A SIMPLE WORKING SAMPLE IS SHOWN ABOVE! PORTFOLIO IS NOT CONNECTED BUT ON THE PROCESS.
